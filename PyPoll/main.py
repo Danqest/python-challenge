@@ -1,56 +1,68 @@
-#import the OS library and install dependencies if not already available
+#import the OS & csv library
 import os
-package = "pandas"
-try:
-    __import__package
-except:
-    os.system("pip install "+ package)
-
-# import the pandas library
-import pandas as pd
+import csv
 
 # define the PATH variable for data to be used and read the csv dataset
-PATH = 'C:/Users/Danqest/Desktop/CODING/GT-VIRT-DATA-PT-01-2023-U-LOLC/03 - Python Unit/python-challenge/PyPoll/Resources/election_data.csv'
-election_data = pd.read_csv(PATH)
+PATH = os.path.join('Resources', 'election_data.csv')
+# read the csv
+with open(PATH) as csvfile:
+    csvreader = csv.reader(csvfile, delimiter=',')
+    csv_header = next(csvreader)
 
-# define a variable with the length of the dataframe
-ballot_col_len = len(election_data['Ballot ID'])
+    # define varables to count
+    ballot_count_len = 0
+    count_stockham = 0
+    count_degette = 0
+    count_doane = 0
 
-# count votes for each candidate, calculate percentage of total votes, and save as variables
-CCS_cnt = election_data['Candidate'].loc[election_data['Candidate'] == 'Charles Casper Stockham'].count()
-CCS_pct = round((CCS_cnt / ballot_col_len)*100, 3)
+    # iterate through the csv and count total ballots and ballots per candidate
+    for row in csvreader:
+        ballot_count_len += 1
+        
+        if row[2] == 'Charles Casper Stockham':
+            count_stockham += 1
+        elif row[2] == 'Diana DeGette':
+            count_degette += 1
+        elif row[2] == 'Raymon Anthony Doane':
+            count_doane += 1
 
-DDG_cnt = election_data['Candidate'].loc[election_data['Candidate'] == 'Diana DeGette'].count()
-DDG_pct = round((DDG_cnt / ballot_col_len)*100,3)
+    # calculate percentage of total votes per candidate
+    CCS_pct = round((count_stockham / ballot_count_len)*100,3)
+    DDG_pct = round((count_degette / ballot_count_len)*100,3)
+    RAD_pct = round((count_doane / ballot_count_len)*100,3)
 
-RAD_cnt = election_data['Candidate'].loc[election_data['Candidate'] == 'Raymon Anthony Doane'].count()
-RAD_pct = round((RAD_cnt / ballot_col_len)*100,3)
+    # basic logic to verify winner
+    winner = max(count_stockham, count_degette, count_doane)
+    winner_name = ''
+    
+    if winner == count_stockham:
+        winner_name = 'Charles Casper Stockham'
+    elif winner == count_degette:
+        winner_name = 'Diana DeGette'
+    else: 
+        winner_name = 'Raymon Anthony Doane'
 
-# store top vote winner as variable
-vote_winner = election_data['Candidate'].describe()
-vote_winner = vote_winner['top']
+    # return the variables to the terminal
+    print('Election Results')
+    print('----------------------------')
+    print(f'Total Votes: {ballot_count_len}')
+    print('----------------------------')
+    print(f'Charles Casper Stockham: {CCS_pct}% ({count_stockham})')
+    print(f'Diana DeGette: {DDG_pct}% ({count_degette})')
+    print(f'Raymond Anthony Doane: {RAD_pct}% ({count_doane})')
+    print('----------------------------')
+    print(f'Winner: {winner_name}')
+    print('----------------------------')
 
-# return the variables to the terminal
-print('Election Results')
-print('----------------------------')
-print(f'Total Votes: {ballot_col_len}')
-print('----------------------------')
-print(f'Charles Casper Stockham: {CCS_pct}% ({CCS_cnt})')
-print(f'Diana DeGette: {DDG_pct}% ({DDG_cnt})')
-print(f'Raymond Anthony Doane: {RAD_pct}% ({RAD_cnt})')
-print('----------------------------')
-print(f'Winner: {vote_winner}')
-print('----------------------------')
-
-# return the variables to a text file
-with open("./analysis/analysis.txt", "w") as f:
-    print('Election Results', file=f)
-    print('----------------------------', file=f)
-    print(f'Total Votes: {ballot_col_len}', file=f)
-    print('----------------------------', file=f)
-    print(f'Charles Casper Stockham: {CCS_pct} ({CCS_cnt})', file=f)
-    print(f'Diana DeGette: {DDG_pct} ({DDG_cnt})', file=f)
-    print(f'Raymon Anthony Doane: {RAD_pct} ({RAD_cnt})', file=f)
-    print('----------------------------', file=f)
-    print(f'Winner: {vote_winner}', file=f)
-    print('----------------------------', file=f)
+    # return the variables to a text file
+    with open("./analysis/analysis.txt", "w") as f:
+        print('Election Results', file=f)
+        print('----------------------------', file=f)
+        print(f'Total Votes: {ballot_count_len}', file=f)
+        print('----------------------------', file=f)
+        print(f'Charles Casper Stockham: {CCS_pct}% ({count_stockham})', file=f)
+        print(f'Diana DeGette: {DDG_pct}% ({count_degette})', file=f)
+        print(f'Raymon Anthony Doane: {RAD_pct}% ({count_doane})', file=f)
+        print('----------------------------', file=f)
+        print(f'Winner: {winner_name}', file=f)
+        print('----------------------------', file=f)
