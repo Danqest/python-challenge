@@ -1,53 +1,63 @@
-#import the OS library and install dependencies if not already available
+#import the OS & csv library
 import os
-package = "pandas"
-try:
-    __import__package
-except:
-    os.system("pip install "+ package)
-
-# import the pandas library
-import pandas as pd
+import csv
 
 # define the PATH variable for data to be used and read the csv dataset
-PATH = 'C:/Users/Danqest/Desktop/CODING/GT-VIRT-DATA-PT-01-2023-U-LOLC/03 - Python Unit/python-challenge/PyBank/Resources/budget_data.csv'
-budget_data = pd.read_csv(PATH)
+PATH = os.path.join('Resources', 'budget_data.csv')
 
-# define a variable with the length of the dataframe
-date_col_len = len(budget_data['Date'])
+# read the csv
+with open(PATH) as csvfile:
+    csvreader = csv.reader(csvfile, delimiter=',')
+    csv_header = next(csvreader)
+    
+    # initialize variables
+    count_len = 0
+    total_pnl = 0
+    date_vector = []
+    pnl_vector = []
+    pnl_diff = []
+    avg_pnl = 0
+    
+    # iterate through csv
+    for row in csvreader:
+        count_len += 1
+        
+        total_pnl += int(row[1])
+        
+        date_vector.append(row[0])
+        pnl_vector.append(int(row[1]))
 
-# define a variable for the sum of Profits/Losses column
-total_pnl = sum(budget_data['Profit/Losses'])
+    # calculate PnL differences
+    for i in range(1, len(pnl_vector)):
+        pnl_diff.append(pnl_vector[i] - pnl_vector[i-1])
+    
+    # insert 0 into list position 0
+    pnl_diff.insert(0, 0)
 
-# define a new column in the dataframe which displays the monthly difference between Profits/Losses
-budget_data['PnL Delta'] = budget_data['Profit/Losses'].diff()
+    # calculate average pnl, max, min, and list positions
+    avg_pnl = round(sum(pnl_diff) / (count_len - 1), 2)
+    
+    max_pnl = max(pnl_diff)
+    min_pnl = min(pnl_diff)
+    
+    list_pos_max = pnl_diff.index(max_pnl)
+    list_pos_min = pnl_diff.index(min_pnl)
 
-# define a variable for the average change in Profits/Losses
-pnl_delta = round(budget_data['PnL Delta'].sum() / (len(budget_data)-1), 2)
+    # return the variables to the terminal
+    print('Financial Analysis')
+    print('----------------------------')
+    print(f'Total Months: {count_len}')
+    print(f'Total: ${total_pnl}')
+    print(f'Average Change: ${avg_pnl}')
+    print(f'Greatest Incease in Profits: {date_vector[list_pos_max]} (${max_pnl})')
+    print(f'Greatest Decrease in Profits: {date_vector[list_pos_min]} (${min_pnl})')
 
-# define variables to hold the max pnl_delta figure and date
-max_row_date = budget_data['Date'].loc[budget_data['PnL Delta'] == budget_data['PnL Delta'].max()].item()
-max_row_value = budget_data['PnL Delta'].loc[budget_data['PnL Delta'] == budget_data['PnL Delta'].max()].item()
-
-# define variables to hold the min pnl_delta figure and date
-min_row_date = budget_data['Date'].loc[budget_data['PnL Delta'] == budget_data['PnL Delta'].min()].item()
-min_row_value = budget_data['PnL Delta'].loc[budget_data['PnL Delta'] == budget_data['PnL Delta'].min()].item()
-
-# return the variables to the terminal
-print('Financial Analysis')
-print('----------------------------')
-print(f'Total Months: {date_col_len}')
-print(f'Total: ${total_pnl}')
-print(f'Average Change: ${pnl_delta}')
-print(f'Greatest Incease in Profits: {max_row_date} (${max_row_value})')
-print(f'Greatest Decrease in Profits: {min_row_date} (${min_row_value})')
-
-# return the variables to a text file
-with open("./analysis/analysis.txt", "w") as f:
-    print('Financial Analysis', file=f)
-    print('----------------------------', file=f)
-    print(f'Total Months: {date_col_len}', file=f)
-    print(f'Total: ${total_pnl}', file=f)
-    print(f'Average Change: ${pnl_delta}', file=f)
-    print(f'Greatest Incease in Profits: {max_row_date} (${max_row_value})', file=f)
-    print(f'Greatest Decrease in Profits: {min_row_date} (${min_row_value})', file=f)
+    # return the variables to a text file
+    with open("./analysis/analysis.txt", "w") as f:
+        print('Financial Analysis', file=f)
+        print('----------------------------', file=f)
+        print(f'Total Months: {count_len}', file=f)
+        print(f'Total: ${total_pnl}', file=f)
+        print(f'Average Change: ${avg_pnl}', file=f)
+        print(f'Greatest Incease in Profits: {date_vector[list_pos_max]} (${max_pnl})', file=f)
+        print(f'Greatest Decrease in Profits: {date_vector[list_pos_min]} (${min_pnl})', file=f)
